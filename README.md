@@ -1,3 +1,20 @@
+# Custom instructions
+
+Use the following to initialize this code branch: 
+```
+git clone -b dev git@github.com:laminair/transformers.git
+cd transformers
+uv venv .venv  
+uv pip install "transformers[torch]"
+```
+
+This assumes you have ``uv`` installed.
+
+
+
+
+
+
 <!---
 Copyright 2020 The HuggingFace Team. All rights reserved.
 
