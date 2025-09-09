@@ -3871,14 +3871,16 @@ class GenerationMixinForTemplatedToolCalling(GenerationMixin):
 
         self.templating_state_dict: dict = {}
 
-    def preprocess_input_seq_before_generation_step(self, input_ids, model_kwargs, step_counter):
+    def preprocess_input_seq_before_generation_step(self, input_ids, model_kwargs):
         raise NotImplementedError("You must provide your own templating code.")
 
     def postprocess_input_seq_after_generation_step(self, model_outputs, input_ids, model_kwargs):
-        raise NotImplementedError("You must provide your own templating code.")
+        NotImplementedError("You must provide your own templating code.")
+        return model_outputs, input_ids, model_kwargs
 
     def process_output_seq_after_generation_step(self, model_outputs, next_step_input_ids, model_kwargs):
-        raise NotImplementedError("You must provide your own templating code.")
+        NotImplementedError("You must provide your own templating code.")
+        return model_outputs, next_step_input_ids, model_kwargs
 
     def _validate_generation_mode(self, generation_mode, generation_mode_kwargs):
         if generation_mode == GenerationMode.BEAM_SEARCH and "streamer" in generation_mode_kwargs:
@@ -4658,18 +4660,14 @@ class GenerationMixinForTemplatedToolCalling(GenerationMixin):
             is_prefill = True
 
         # This is the generation loop
-        # TODO: Remove before commit.
-        step_counter = 0
         while self._has_unfinished_sequences(this_peer_finished, synced_gpus, device=input_ids.device):
             # prepare model inputs
-            if not raises_not_implemented_error(self.preprocess_input_seq_before_generation_step, input_ids, model_kwargs, step_counter):
-                # This is a custom piece of code that allows injecting templates into the generation process at token
-                # level. We also pass the `templating_state_dict` to allow in-routine state management.
-                input_ids, model_kwargs = self.preprocess_input_seq_before_generation_step(
-                    input_ids,
-                    model_kwargs,
-                    step_counter
-                )
+            # This is a custom piece of code that allows injecting templates into the generation process at token
+            # level. We also pass the `templating_state_dict` to allow in-routine state management.
+            input_ids, model_kwargs = self.preprocess_input_seq_before_generation_step(
+                input_ids,
+                model_kwargs
+            )
 
             model_inputs = self.prepare_inputs_for_generation(input_ids, **model_kwargs)
 
@@ -4683,14 +4681,13 @@ class GenerationMixinForTemplatedToolCalling(GenerationMixin):
             else:
                 outputs = model_forward(**model_inputs, return_dict=True)
 
-            if not raises_not_implemented_error(self.postprocess_input_seq_after_generation_step, outputs, input_ids, model_kwargs):
-                # This is a custom piece of code that allows injecting templates into the generation process at token
-                # level. We also pass the `templating_state_dict` to allow in-routine state management.
-                input_ids, model_kwargs = self.postprocess_input_seq_after_generation_step(
-                    outputs,
-                    input_ids,
-                    model_kwargs,
-                )
+            # This is a custom piece of code that allows injecting templates into the generation process at token
+            # level. We also pass the `templating_state_dict` to allow in-routine state management.
+            model_outputs, input_ids, model_kwargs = self.postprocess_input_seq_after_generation_step(
+                outputs,
+                input_ids,
+                model_kwargs,
+            )
 
             # synced_gpus: don't waste resources running the code we don't need; kwargs must be updated before skipping
             model_kwargs = self._update_model_kwargs_for_generation(
@@ -4748,19 +4745,17 @@ class GenerationMixinForTemplatedToolCalling(GenerationMixin):
             this_peer_finished = unfinished_sequences.max() == 0
             cur_len += 1
 
-            if not raises_not_implemented_error(self.process_output_seq_after_generation_step, outputs, input_ids, model_kwargs):
-                # This is a custom piece of code that allows injecting templates into the generation process at token
-                # level. We also pass the `templating_state_dict` to allow in-routine state management.
-                input_ids, model_kwargs = self.process_output_seq_after_generation_step(
-                    outputs,
-                    input_ids,
-                    model_kwargs,
-                )
+            # This is a custom piece of code that allows injecting templates into the generation process at token
+            # level. We also pass the `templating_state_dict` to allow in-routine state management.
+            outputs, input_ids, model_kwargs = self.process_output_seq_after_generation_step(
+                outputs,
+                input_ids,
+                model_kwargs,
+            )
 
             # This is needed to properly delete outputs.logits which may be very large for first iteration
             # Otherwise a reference to outputs is kept which keeps the logits alive in the next iteration
             del outputs
-            step_counter += 1
 
         if streamer is not None:
             streamer.end()
