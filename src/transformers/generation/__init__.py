@@ -100,6 +100,7 @@ else:
     ]
     _import_structure["utils"] = [
         "GenerationMixin",
+        "GenerationMixinForTemplatedToolCalling"
         "GreedySearchEncoderDecoderOutput",
         "GreedySearchDecoderOnlyOutput",
         "SampleEncoderDecoderOutput",
@@ -270,6 +271,7 @@ if TYPE_CHECKING:
             GenerateDecoderOnlyOutput,
             GenerateEncoderDecoderOutput,
             GenerationMixin,
+            GenerationMixinForTemplatedToolCalling,
             GreedySearchDecoderOnlyOutput,
             GreedySearchEncoderDecoderOutput,
             SampleDecoderOnlyOutput,

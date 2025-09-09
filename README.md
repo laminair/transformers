@@ -5,14 +5,15 @@ Use the following to initialize this code branch:
 git clone -b dev git@github.com:laminair/transformers.git
 cd transformers
 uv venv .venv  
-uv pip install "transformers[torch]"
+uv pip install -e . --extra torch -r pyproject.toml
 ```
 
 This assumes you have ``uv`` installed.
 
-
-
-
+Minimal Example: 
+```
+...
+```
 
 
 <!---

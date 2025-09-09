@@ -425,6 +425,7 @@ else:
             "ForcedBOSTokenLogitsProcessor",
             "ForcedEOSTokenLogitsProcessor",
             "GenerationMixin",
+            "GenerationMixinForTemplatedToolCalling",
             "InfNanRemoveLogitsProcessor",
             "LogitNormalization",
             "LogitsProcessor",
@@ -455,7 +456,7 @@ else:
             "UnbatchedClassifierFreeGuidanceLogitsProcessor",
             "WatermarkDetector",
             "WatermarkLogitsProcessor",
-            "WhisperTimeStampLogitsProcessor",
+            "WhisperTimeStampLogitsProcessor"
         ]
     )
 
@@ -683,6 +684,7 @@ if TYPE_CHECKING:
     from .generation import ForcedEOSTokenLogitsProcessor as ForcedEOSTokenLogitsProcessor
     from .generation import GenerationConfig as GenerationConfig
     from .generation import GenerationMixin as GenerationMixin
+    from .generation import GenerationMixinForTemplatedToolCalling as GenerationMixinForTemplatedToolCalling
     from .generation import InfNanRemoveLogitsProcessor as InfNanRemoveLogitsProcessor
     from .generation import LogitNormalization as LogitNormalization
     from .generation import LogitsProcessor as LogitsProcessor
